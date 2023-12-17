@@ -1,0 +1,40 @@
+{
+    "sessions": [
+      {
+        "date": "2023-12-16Z13:15:12",
+        "site": "KKPoker",
+        "hands": "1210",
+        "stakes": "$100-$500 Flash",
+        "net": "121",
+        "bb": "5",
+        "currency": "dollar"
+      },
+      {
+        "date": "2023-12-16Z14:20:15",
+        "site": "KKPoker",
+        "hands": "400",
+        "stakes": "$100-$500 Flash",
+        "net": "-52",
+        "bb": "5",
+        "currency": "dollar"
+      },
+      {
+        "date": "2023-12-16Z15:15:32",
+        "site": "KKPoker",
+        "hands": "252",
+        "stakes": "$100-$500 Flash",
+        "net": "50",
+        "bb": "5",
+        "currency": "dollar"
+      },
+      {
+        "date": "2023-12-16Z17:52:14",
+        "site": "KKPoker",
+        "hands": "1210",
+        "stakes": "$100-$500 Flash",
+        "net": "75",
+        "bb": "5",
+        "currency": "dollar"
+      }
+    ]
+  }

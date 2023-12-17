@@ -29,6 +29,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'ホーム',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
@@ -50,6 +51,7 @@ export default function TabLayout() {
         name="summary"
         options={{
           title: '成績',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="line-chart" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
@@ -70,22 +72,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sessions"
         options={{
-          title: 'セッション',
+          title: 'セッション一覧',
+          headerTitleAlign: 'center',
           tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="plus"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
     </Tabs>
