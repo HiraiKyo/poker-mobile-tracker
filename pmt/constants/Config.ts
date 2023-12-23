@@ -1,5 +1,6 @@
 export default {
   db: {
-    remoteFilePath: ""
-  }
-}
+    remoteFilePath: "",
+    defaultFileName: "myDatabase.db",
+  },
+};
