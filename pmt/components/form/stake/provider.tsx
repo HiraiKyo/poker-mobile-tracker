@@ -1,4 +1,10 @@
-import { Control, Controller, FieldErrors, FormState } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  FormState,
+  UseFormRegister,
+} from "react-hook-form";
 import { z } from "zod";
 import { Session } from "../../../types/session";
 import { View, Text } from "../../Themed";
@@ -7,6 +13,10 @@ import { TextInput, useColorScheme } from "react-native";
 import { Stake } from "../../../types/stake";
 
 type Props = {
+  register: UseFormRegister<
+    Omit<Stake, "stakes_code" | "created_at" | "updated_at" | "deleted_at">
+  >;
+
   control: Control<
     Omit<Stake, "stakes_code" | "created_at" | "updated_at" | "deleted_at">,
     any
@@ -16,7 +26,7 @@ type Props = {
   >;
 };
 
-export default ({ control, errors }: Props) => {
+export default ({ register, control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "provider";
 
@@ -30,7 +40,7 @@ export default ({ control, errors }: Props) => {
             textAlign: "right",
           }}
         >
-          Small Blind
+          サイト名
         </Text>
       </View>
       <View style={{ flex: 0.6 }}>

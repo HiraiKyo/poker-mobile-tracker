@@ -13,6 +13,8 @@ import Config from "../constants/Config";
 import { SQLiteDatabase } from "expo-sqlite";
 import { AppError } from "../libs/error";
 import { DataProvider } from "../context/dataContext";
+import { ApplicationProvider } from "@ui-kitten/components";
+import * as eva from "@eva-design/eva";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -34,6 +36,7 @@ export default function RootLayout() {
   /**
    * === アプリ起動直後の読込処理 start ===
    */
+  const colorScheme = useColorScheme();
 
   // フォント読込処理
   const [fontLoaded, fontError] = useFonts({
@@ -78,9 +81,14 @@ export default function RootLayout() {
    */
 
   return (
-    <DataProvider>
-      <RootLayoutNav />
-    </DataProvider>
+    <ApplicationProvider
+      {...eva}
+      theme={colorScheme === "dark" ? eva.dark : eva.light}
+    >
+      <DataProvider>
+        <RootLayoutNav />
+      </DataProvider>
+    </ApplicationProvider>
   );
 }
 

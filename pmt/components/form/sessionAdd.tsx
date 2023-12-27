@@ -14,6 +14,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Hands_amount from "./session/hands_amount";
 import Stakes_code from "./session/stakes_code";
 import { database } from "../../app/_layout";
+import StakeAdd from "./stakeAdd";
+import { useEffect, useState } from "react";
 
 /**
  * セッション追加フォーム
@@ -30,11 +32,13 @@ export default () => {
     session_at: "",
     win_amount: 0,
     hands_amount: 0,
-    stakes_code: 0, //FKey
+    stakes_code: -1, //FKey デフォルト-1で、-1の場合は新規ステークス作成
   };
 
   const {
     control,
+    register,
+    watch,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -48,6 +52,21 @@ export default () => {
       })
     ), // Zodにてバリデーションルール定義
   });
+
+  /**
+   * セレクタで、ステークスを新規作成するか既存ステークスを選択するかを監視する。
+   * 新規ステークスフォームの表示と、Submitの処理分岐のため
+   */
+  const stakes_code = watch("stakes_code");
+  const [isNewStake, setNewStake] = useState<boolean>(false);
+  useEffect(() => {
+    if (stakes_code === -1) {
+      setNewStake(true);
+    } else {
+      setNewStake(false);
+    }
+    console.log(stakes_code);
+  }, [stakes_code]);
 
   /** 成功時処理 */
   const onSubmitHandler = (data: FormParams) => {
@@ -72,23 +91,25 @@ export default () => {
     <View style={styles.container}>
       {/** セッション終了時刻 */}
       <View style={styles.line}>
-        <Session_at control={control} errors={errors} />
+        <Session_at register={register} control={control} errors={errors} />
       </View>
 
       {/** 勝ち額 */}
       <View style={styles.line}>
-        <Win_amount control={control} errors={errors} />
+        <Win_amount register={register} control={control} errors={errors} />
       </View>
 
       {/** ハンド数 */}
       <View style={styles.line}>
-        <Hands_amount control={control} errors={errors} />
+        <Hands_amount register={register} control={control} errors={errors} />
       </View>
 
       {/** ステークスコード TODO: ステークスの新規登録フォームと連結する */}
       <View style={styles.line}>
-        <Stakes_code control={control} errors={errors} />
+        <Stakes_code register={register} control={control} errors={errors} />
       </View>
+
+      {isNewStake && <StakeAdd />}
 
       <Pressable
         onPress={handleSubmit(onSubmitHandler, onSubmitErrorHandler)}

@@ -1,4 +1,10 @@
-import { Control, Controller, FieldErrors, FormState } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  FormState,
+  UseFormRegister,
+} from "react-hook-form";
 import { z } from "zod";
 import { Session, SessionWithStake } from "../../../types/session";
 import { View, Text } from "../../Themed";
@@ -6,6 +12,10 @@ import Colors from "../../../constants/Colors";
 import { TextInput, useColorScheme } from "react-native";
 
 type Props = {
+  register: UseFormRegister<
+    Omit<Session, "id" | "created_at" | "updated_at" | "deleted_at">
+  >;
+
   control: Control<
     Omit<Session, "id" | "created_at" | "updated_at" | "deleted_at">,
     any
@@ -15,7 +25,7 @@ type Props = {
   >;
 };
 
-export default ({ control, errors }: Props) => {
+export default ({ register, control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "session_at";
 

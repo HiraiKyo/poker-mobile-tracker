@@ -1,27 +1,27 @@
 # poker-mobile-tracker
+
 モバイルアプリ向けポーカー収支管理アプリ
 
 # ディレクトリ構成
-`docs`: ドキュメント類
+
+- `docs`: ドキュメント類
+- `pmt`: アプリソース
 
 # 環境立ち上げ
-`npx expo start`
+
+`npx expo start --tunnel`
 
 # スタック
-DB: Expo-SQLite
-App: Expo React Native
 
-# FIXME:
-## Modalを開いた時に、Backボタンがホームにしか戻れない
-inprovements pendingって書いてある？
+- DB: Expo-SQLite
+- App Framework: Expo React Native
+- UI Materals: ui-kitten
 
-https://docs.expo.dev/router/reference/faq/
-
-Backsheet Modalにして対応する事が求められてそう
+# 要修正項目
 
 # TROUBLESHOOTING
 
-## Expoアプリ起動時
+## Expo アプリ起動時
 
 - nodejs17+だとどうこう出てくる。
 
@@ -31,11 +31,10 @@ Backsheet Modalにして対応する事が求められてそう
 
 https://github.com/infinitered/ignite/issues/1995
 
-MJSを許可する事で解決。アプリリロード必須
-
+MJS を許可する事で解決。アプリリロード必須
 
 # MEMO
 
 ## SQLiteBrowser
-`sudo apt-get install sqlitebrowser`
 
+`sudo apt-get install sqlitebrowser`

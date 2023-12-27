@@ -32,14 +32,15 @@ export default () => {
     "stakes_code" | "created_at" | "updated_at" | "deleted_at"
   >;
   const defaultValues: FormParams = {
-    stakes_name: "Default Stakes",
+    stakes_name: "デフォルト",
     sb: 1,
     bb: 2,
-    provider: "Default Site",
+    provider: "デフォルトサイト",
   };
 
   const {
     control,
+    register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormParams>({
@@ -77,30 +78,24 @@ export default () => {
     <View style={styles.container}>
       {/** ステークス */}
       <View style={styles.line}>
-        <Stakes_name control={control} errors={errors} />
+        <Stakes_name register={register} control={control} errors={errors} />
       </View>
 
       {/** SB */}
       <View style={styles.line}>
-        <Sb control={control} errors={errors} />
+        <Sb register={register} control={control} errors={errors} />
       </View>
 
       {/** BB */}
       <View style={styles.line}>
-        <Bb control={control} errors={errors} />
+        <Bb register={register} control={control} errors={errors} />
       </View>
 
       {/** サイト */}
       <View style={styles.line}>
-        <Provider control={control} errors={errors} />
+        <Provider register={register} control={control} errors={errors} />
       </View>
 
-      {/* <View
-        style={[
-          styles.button,
-          { backgroundColor: Colors[colorScheme ?? "light"].mainBg },
-        ]}
-      > */}
       <Pressable
         onPress={handleSubmit(onSubmitHandler, onSubmitErrorHandler)}
         disabled={isSubmitting}
@@ -123,7 +118,6 @@ export default () => {
           </Text>
         )}
       </Pressable>
-      {/* </View> */}
     </View>
   );
 };
