@@ -50,17 +50,13 @@ export default function RootLayout() {
 
   // DB読込処理
   const [dbLoaded, setDbLoaded] = useState<boolean>(false);
-  useEffect(() => {
-    (async () => {
-      // DBロード
-      try {
-        database = await Database.getInstance();
-        setDbLoaded(true);
-      } catch (dbError) {
-        throw dbError;
-      }
-    })();
-  }, []);
+  // DBロード
+  Database.getInstance()
+    .then((_) => {
+      database = _;
+      setDbLoaded(true);
+    })
+    .catch((e) => setDbLoaded(false));
 
   // アプリ起動完了後、スプラッシュから画面遷移
   useEffect(() => {
@@ -105,6 +101,15 @@ function RootLayoutNav() {
             headerTitleAlign: "center",
             headerBackTitle: "セッション一覧",
             title: "セッションを記録",
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="setting"
+          options={{
+            headerTitleAlign: "center",
+            headerBackTitle: "設定",
+            title: "設定",
             presentation: "modal",
           }}
         />

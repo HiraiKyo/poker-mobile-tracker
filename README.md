@@ -19,8 +19,11 @@
 
 `npx expo start --tunnel`
 
-
 # 要修正項目
+
+## SQLite の日付型変換
+
+SQLite は日付型がないので、Datetime <-> String 変換を用意する必要あり
 
 # TROUBLESHOOTING
 
@@ -42,6 +45,13 @@ MJS を許可する事で解決。アプリリロード必須
 
 `sudo apt-get install sqlitebrowser`
 
+## Cycled Dependency 問題
+
+循環参照どうするか？ Inversify で DI する？
+でも Interface 書くのは面倒だなあ
+
 # Improvements
-## SQLiteのORM入れたい
-TypeORM入れられる？
+
+## SQLite の ORM 入れたい
+
+TypeORM 入れられる？

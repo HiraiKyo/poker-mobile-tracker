@@ -35,7 +35,7 @@ export class Database {
       this.instance.db = await this.instance.openDatabase("");
 
       // DB存在しない場合に初期化 FIXME: 同期的に初期化した方がいい？
-      this.instance.initialize();
+      await this.instance.initialize();
     }
     return this.instance;
   }
@@ -62,7 +62,7 @@ export class Database {
     //   Asset.fromModule(require(pathToDatabaseFile)).uri,
     //   documentDirectory + 'SQLite/myDatabase.db'
     // );
-    return openSQLDatabase(Config.db.defaultFileName);
+    return await openSQLDatabase(Config.db.defaultFileName);
   };
 
   /**
@@ -73,18 +73,28 @@ export class Database {
     this.db.transaction((tx) => {
       tx.executeSql(
         `
-        CREATE TABLE IF NOT EXISTS stakes (
-          stakes_code	INTEGER NOT NULL,
-          stakes_name	TEXT NOT NULL,
-          sb INTEGER NOT NULL,
-          bb INTEGER NOT NULL,
-          provider TEXT NOT NULL,
-          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          deleted_at TEXT,
-          PRIMARY KEY(stakes_code)
-        );
-        CREATE TABLE IF NOT EXISTS sessions (
+          CREATE TABLE IF NOT EXISTS stakes (
+            stakes_code	INTEGER NOT NULL,
+            stakes_name	TEXT NOT NULL,
+            sb INTEGER NOT NULL,
+            bb INTEGER NOT NULL,
+            provider TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            deleted_at TEXT,
+            PRIMARY KEY(stakes_code)
+          );
+          `,
+        [],
+        (tx, resultSet) => {},
+        (tx, e) => {
+          return false;
+        }
+      );
+    });
+    this.db.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS sessions (
           id INTEGER NOT NULL,
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -95,13 +105,12 @@ export class Database {
           win_amount INTEGER NOT NULL,
           FOREIGN KEY(stakes_code) REFERENCES stakes(stakes_code),
           PRIMARY KEY(id)
-        );`,
+        );
+          `,
         [],
-        (tx, resultSet) => console.log(resultSet),
+        (tx, resultSet) => {},
         (tx, e) => {
-          console.error(e);
           return false;
-          // return appError.transactionError(e);
         }
       );
     });
@@ -273,8 +282,8 @@ export class Database {
       Stake,
       "stakes_code" | "created_at" | "updated_at" | "deleted_at"
     >,
-    onSuccess: (resultSet: SQLResultSet) => void,
-    onFailed: (e: SQLError) => void
+    onSuccess: (stake: Stake) => void,
+    onFailed: () => void
   ) => {
     this.db.transaction((tx) => {
       tx.executeSql(
@@ -288,7 +297,14 @@ export class Database {
         [stake.stakes_name, stake.sb, stake.bb, stake.provider],
         (tx, resultSet) => {
           console.log(resultSet);
-          onSuccess(resultSet);
+          if (!resultSet.insertId) {
+            onFailed();
+            return;
+          }
+          onSuccess({
+            stakes_code: resultSet.insertId,
+            ...resultSet.rows.item(0),
+          });
         },
         (tx, e) => {
           onFailed(e);
@@ -396,7 +412,6 @@ export class Database {
         (tx, resultSet) =>
           onLoaded(this.convertStakeList(resultSet.rows._array)),
         (tx, e) => {
-          
           console.error(e);
           return false;
           // return appError.transactionError(e);
