@@ -26,48 +26,45 @@ export default () => {
   }, [data]);
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <View style={{ alignItems: "center", flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <View style={{
+          flexGrow: 1,
+          marginTop: 4,
+        }}>
           <Text style={styles.title}>セッション一覧</Text>
-          <View style={{ justifyContent: "center", gap: 4 }}>
-            <RoundedLabel
-              backgroundColor={Colors[colorScheme ?? "light"].mainBg}
+        </View>
+        <View style={styles.scrollItem}>
+            <Text
+              style={[
+                styles.sessionDateSeparator,
+                { color: Colors[colorScheme ?? "light"].text, textAlign: "center" },
+              ]}
             >
+              今日
+            </Text>
+          {data.map((sessionWithStake, index) => (
+            <SessionSummary 
+              key={index}
+              sessionWithStake={sessionWithStake}
+            />
+          ))}
+          <Pressable onPress={reload}>
+            {({ pressed }) => (
               <Text
                 style={[
-                  styles.sessionDateSeparator,
-                  { color: Colors[colorScheme ?? "light"].text },
+                  styles.button,
+                  {
+                    color: Colors[colorScheme ?? "light"].text,
+                    backgroundColor: pressed
+                      ? "#666"
+                      : Colors[colorScheme ?? "light"].mainBg,
+                  },
                 ]}
               >
-                今日
+                もっと見る...
               </Text>
-            </RoundedLabel>
-            {data.map((sessionWithStake, index) => (
-              <RoundedLabel
-                key={index}
-                backgroundColor={Colors[colorScheme ?? "light"].mainBg}
-              >
-                <SessionSummary sessionWithStake={sessionWithStake} />
-              </RoundedLabel>
-            ))}
-            <Pressable onPress={reload}>
-              {({ pressed }) => (
-                <Text
-                  style={[
-                    styles.button,
-                    {
-                      color: Colors[colorScheme ?? "light"].text,
-                      backgroundColor: pressed
-                        ? "#666"
-                        : Colors[colorScheme ?? "light"].mainBg,
-                    },
-                  ]}
-                >
-                  もっと見る...
-                </Text>
-              )}
-            </Pressable>
-          </View>
+            )}
+          </Pressable>
         </View>
       </ScrollView>
       {/** 新しいセッション追加ボタン */}
@@ -97,11 +94,19 @@ export default () => {
 /**
  * スタイル記述エリア start
  */
+const sideMargin = 40;
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1
+  },
+  scrollView: {
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  scrollItem: {
+    width: Dimensions.get("window").width - 2 * sideMargin,
+    alignContent: "center",
+    gap: 4
   },
   title: {
     fontSize: 20,
@@ -110,8 +115,6 @@ const styles = StyleSheet.create({
   },
   separator: {
     marginVertical: 30,
-    height: 1,
-    width: "80%",
   },
   buttonStyle: {
     position: "absolute",
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const sideMargin = 40; //
+
 
 /**
  * スタイル記述エリア end
@@ -143,7 +146,7 @@ const sideMargin = 40; //
 /**
  * セッションコンポーネント
  * TODO: 横幅がなぜか画面幅準拠にならない。横幅どうするか？
- * TODO: 長い時に折り返しするように
+ * TODO: テキスト長い時に折り返しするように
  */
 const SessionSummary = ({
   sessionWithStake,
@@ -155,18 +158,13 @@ const SessionSummary = ({
   return (
     <View
       style={{
-        flex: 1,
-        width: Dimensions.get("window").width - 2 * sideMargin,
         backgroundColor: Colors[colorScheme ?? "light"].mainBg,
       }}
     >
       <View
         style={{
           rowGap: 10,
-          display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
-          flex: 1,
           backgroundColor: Colors[colorScheme ?? "light"].mainBg,
         }}
       >
@@ -194,7 +192,7 @@ const SessionSummary = ({
         </Text>
         <View
           style={{
-            flex: 1,
+            flexGrow: 1,
             backgroundColor: Colors[colorScheme ?? "light"].mainBg,
           }}
         ></View>
@@ -202,10 +200,7 @@ const SessionSummary = ({
       <View
         style={{
           rowGap: 10,
-          display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
-          flex: 1,
           backgroundColor: Colors[colorScheme ?? "light"].mainBg,
         }}
       >
@@ -222,7 +217,7 @@ const SessionSummary = ({
         </Text>
         <View
           style={{
-            flex: 1,
+            flexGrow: 1,
             backgroundColor: Colors[colorScheme ?? "light"].mainBg,
           }}
         ></View>
@@ -230,10 +225,7 @@ const SessionSummary = ({
       <View
         style={{
           width: "100%",
-          display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
-          flex: 1,
           backgroundColor: Colors[colorScheme ?? "light"].mainBg,
         }}
       >
@@ -249,7 +241,7 @@ const SessionSummary = ({
         </Text>
         <View
           style={{
-            flex: 1,
+            flexGrow: 1,
             backgroundColor: Colors[colorScheme ?? "light"].mainBg,
           }}
         ></View>

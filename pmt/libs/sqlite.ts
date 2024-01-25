@@ -1,4 +1,6 @@
 import {
+  SQLError,
+  SQLResultSet,
   SQLResultSetRowList,
   SQLTransaction,
   SQLiteDatabase,
@@ -13,7 +15,7 @@ import {
 } from "expo-file-system";
 import { Platform } from "react-native";
 import Config from "../constants/Config";
-import { appError } from "../app/_layout";
+// import { appError } from "../app/_layout";
 import { Session, SessionWithStake } from "../types/session";
 import { Stake } from "../types/stake";
 
@@ -52,7 +54,7 @@ export class Database {
         await makeDirectoryAsync(documentDirectory + "SQLite");
       }
     }
-    // TODO: WebならlocalStorageから読込
+    // FIXME: Web版はexpo-sqliteが対応していないので、後から考える
     if (Platform.OS === "web") {
     }
     // FIXME: ダウンロード処理
@@ -97,7 +99,9 @@ export class Database {
         [],
         (tx, resultSet) => console.log(resultSet),
         (tx, e) => {
-          return appError.transactionError(e);
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
         }
       );
     });
@@ -133,7 +137,9 @@ export class Database {
         },
         (tx, e) => {
           onFailed();
-          return appError.transactionError(e);
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
         }
       );
     });
@@ -164,7 +170,11 @@ export class Database {
           session.id,
         ],
         (tx, resultSet) => console.log(resultSet),
-        (tx, e) => appError.transactionError(e)
+        (tx, e) => {
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
+        }
       );
     });
   };
@@ -192,7 +202,11 @@ export class Database {
       `,
         ids,
         (tx, resultSet) => onLoaded,
-        (tx, e) => appError.transactionError(e)
+        (tx, e) => {
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
+        }
       );
     });
   };
@@ -212,7 +226,11 @@ export class Database {
           console.log(resultSet);
           onLoaded(this.convertSessionList(resultSet.rows._array));
         },
-        (tx, e) => appError.transactionError(e)
+        (tx, e) => {
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
+        }
       );
     });
   };
@@ -255,8 +273,8 @@ export class Database {
       Stake,
       "stakes_code" | "created_at" | "updated_at" | "deleted_at"
     >,
-    onSuccess: () => void,
-    onFailed: () => void
+    onSuccess: (resultSet: SQLResultSet) => void,
+    onFailed: (e: SQLError) => void
   ) => {
     this.db.transaction((tx) => {
       tx.executeSql(
@@ -270,11 +288,13 @@ export class Database {
         [stake.stakes_name, stake.sb, stake.bb, stake.provider],
         (tx, resultSet) => {
           console.log(resultSet);
-          onSuccess();
+          onSuccess(resultSet);
         },
         (tx, e) => {
-          onFailed();
-          return appError.transactionError(e);
+          onFailed(e);
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
         }
       );
     });
@@ -314,7 +334,9 @@ export class Database {
         },
         (tx, e) => {
           onFailed();
-          return appError.transactionError(e);
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
         }
       );
     });
@@ -352,7 +374,9 @@ export class Database {
         },
         (tx, e) => {
           onFailed();
-          return appError.transactionError(e);
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
         }
       );
     });
@@ -371,7 +395,12 @@ export class Database {
         [],
         (tx, resultSet) =>
           onLoaded(this.convertStakeList(resultSet.rows._array)),
-        (tx, e) => appError.transactionError(e)
+        (tx, e) => {
+          
+          console.error(e);
+          return false;
+          // return appError.transactionError(e);
+        }
       );
     });
   };

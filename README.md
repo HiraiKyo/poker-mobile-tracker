@@ -2,6 +2,12 @@
 
 モバイルアプリ向けポーカー収支管理アプリ
 
+# スタック
+
+- DB: Expo-SQLite
+- App Framework: Expo React Native
+- UI Materals: ui-kitten
+
 # ディレクトリ構成
 
 - `docs`: ドキュメント類
@@ -9,13 +15,10 @@
 
 # 環境立ち上げ
 
+## 開発環境テスト
+
 `npx expo start --tunnel`
 
-# スタック
-
-- DB: Expo-SQLite
-- App Framework: Expo React Native
-- UI Materals: ui-kitten
 
 # 要修正項目
 
@@ -38,3 +41,7 @@ MJS を許可する事で解決。アプリリロード必須
 ## SQLiteBrowser
 
 `sudo apt-get install sqlitebrowser`
+
+# Improvements
+## SQLiteのORM入れたい
+TypeORM入れられる？

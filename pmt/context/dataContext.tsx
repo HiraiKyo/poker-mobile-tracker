@@ -11,34 +11,40 @@ import { Stake } from "../types/stake";
 
 type DataContextValue = {
   data: SessionWithStake[];
-  reload: () => void;
+  reload: () => Promise<void>;
   stakes: Stake[];
-  reloadStakes: () => void;
+  reloadStakes: () => Promise<void>;
 };
 
 const defaultValue = {
   data: [],
-  reload: () => {},
+  reload: async () => { throw new Error("Context Provider is not set.") },
   stakes: [],
-  reloadStakes: () => {},
+  reloadStakes: async () => { throw new Error("Context Provider is not set.")},
 };
 const dataContext = createContext<DataContextValue>(defaultValue);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<SessionWithStake[]>(defaultValue.data);
 
-  const reload = () => {
+  const reload = () => new Promise<void>((resolve, reject) => {
     console.log("reloading session[]...");
-    database.loadSession(setData);
-  };
+    database.loadSession((_) => {
+      setData(_);
+      resolve();
+    });
+  })
 
   // ステークス一覧
   const [stakes, setStakes] = useState<Stake[]>(defaultValue.stakes);
 
-  const reloadStakes = () => {
+  const reloadStakes = () => new Promise<void>((resolve, reject) => {
     console.log("reloading stake[]...");
-    database.loadStake(setStakes);
-  };
+    database.loadStake((_) => {
+      setStakes(_);
+      resolve();
+    });
+  })
 
   useEffect(() => {
     reload();

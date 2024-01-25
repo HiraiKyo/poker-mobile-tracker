@@ -9,8 +9,6 @@ import { SplashScreen, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
 import { Database } from "../libs/sqlite";
-import Config from "../constants/Config";
-import { SQLiteDatabase } from "expo-sqlite";
 import { AppError } from "../libs/error";
 import { DataProvider } from "../context/dataContext";
 import { ApplicationProvider } from "@ui-kitten/components";
@@ -30,7 +28,8 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export let database: Database;
-export const appError: AppError = AppError.getInstance();
+// FIXME: エラー管理クラスの利用方法、Cycled Dependency解消
+// export const appError: AppError = AppError.getInstance();
 
 export default function RootLayout() {
   /**

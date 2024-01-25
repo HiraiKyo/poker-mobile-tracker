@@ -20,13 +20,11 @@ import StakeAdd from "../components/form/stakeAdd";
 
 export default () => {
   return (
-    <View>
-      <ScrollView>
-        <View style={styles.container}>
-          <SessionAdd />
-          {/* Use a light status bar on iOS to account for the black space above the modal */}
-          <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
-        </View>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <SessionAdd />
+        {/* Use a light status bar on iOS to account for the black space above the modal */}
+        <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
       </ScrollView>
     </View>
   );
@@ -35,6 +33,8 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
     alignItems: "center",
     justifyContent: "center",
   },

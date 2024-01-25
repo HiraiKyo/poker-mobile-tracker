@@ -23,7 +23,7 @@ import Sb from "./stake/sb";
 /**
  * ステークス追加フォーム
  */
-export default () => {
+export default ({ setStakesCode }: { setStakesCode : (stakes_code: number) => void }) => {
   const colorScheme = useColorScheme();
 
   /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
@@ -63,8 +63,15 @@ export default () => {
       // 1-e. DB登録失敗時はフォームクリアしない
       database.insertStake(
         data,
-        () => resolve,
-        () => reject
+        (resultSet) => {
+          if(resultSet.insertId){
+            setStakesCode(resultSet.insertId)
+            clearForm();
+          }
+        },
+        (e) => {
+          console.error(e.message)
+        }
       );
     });
   };
@@ -73,6 +80,11 @@ export default () => {
   const onSubmitErrorHandler = (e: any) => {
     console.error(e);
   };
+
+  // フォームクリア
+  const clearForm = () => {
+
+  }
 
   return (
     <View style={styles.container}>
@@ -114,7 +126,7 @@ export default () => {
               },
             ]}
           >
-            新規追加
+            ステークスを追加
           </Text>
         )}
       </Pressable>
@@ -128,7 +140,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    width: Dimensions.get("window").width,
   },
   container: {
     flex: 1,

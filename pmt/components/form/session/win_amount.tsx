@@ -37,6 +37,7 @@ export default ({ register, control, errors }: Props) => {
             fontSize: 24,
             color: Colors[colorScheme ?? "light"].text,
             textAlign: "right",
+            marginLeft: 10,
           }}
         >
           勝ち額
@@ -55,9 +56,9 @@ export default ({ register, control, errors }: Props) => {
                 borderBottomWidth: 1,
                 borderBottomColor: "#ccc",
                 flex: 1,
-                width: "80%",
+                marginRight: 10,
                 fontSize: 24,
-                marginLeft: "4%",
+                marginLeft: 4,
                 marginVertical: "2%",
                 color: Colors[colorScheme ?? "light"].text,
               }}

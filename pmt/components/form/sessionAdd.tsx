@@ -16,13 +16,15 @@ import Stakes_code from "./session/stakes_code";
 import { database } from "../../app/_layout";
 import StakeAdd from "./stakeAdd";
 import { useEffect, useState } from "react";
+import { Card } from "@ui-kitten/components";
+import { useData } from "../../context/dataContext";
 
 /**
  * セッション追加フォーム
  */
 export default () => {
   const colorScheme = useColorScheme();
-
+  const { reloadStakes } = useData();
   /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
   type FormParams = Omit<
     Session,
@@ -40,6 +42,7 @@ export default () => {
     register,
     watch,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues,
@@ -68,9 +71,14 @@ export default () => {
     console.log(stakes_code);
   }, [stakes_code]);
 
+  const setNewStakesCode = (stakes_code: number) => {
+    reloadStakes().then(() => { 
+      setValue("stakes_code", stakes_code)
+    });
+  }
+
   /** 成功時処理 */
   const onSubmitHandler = (data: FormParams) => {
-    console.log("Submit button has been pressed.");
     new Promise((resolve, reject) => {
       // 1. DB登録、完了と同時にフォームクリアと送信ボタンをenabled
       // 1-e. DB登録失敗時はフォームクリアしない
@@ -88,7 +96,24 @@ export default () => {
   };
 
   return (
-    <View style={styles.container}>
+    <>
+      {/** ステークスコード */}
+      <View style={styles.line}>
+        <Stakes_code register={register} control={control} errors={errors} />
+      </View>
+
+      {isNewStake && (
+        <View style={[styles.line, {
+          borderWidth: 2,
+          padding: 2,
+          borderColor: Colors[colorScheme ?? "light"].tint,
+
+        }]}>
+          <StakeAdd 
+            setStakesCode={setNewStakesCode}
+          />
+        </View>
+      )}
       {/** セッション終了時刻 */}
       <View style={styles.line}>
         <Session_at register={register} control={control} errors={errors} />
@@ -104,12 +129,6 @@ export default () => {
         <Hands_amount register={register} control={control} errors={errors} />
       </View>
 
-      {/** ステークスコード TODO: ステークスの新規登録フォームと連結する */}
-      <View style={styles.line}>
-        <Stakes_code register={register} control={control} errors={errors} />
-      </View>
-
-      {isNewStake && <StakeAdd />}
 
       <Pressable
         onPress={handleSubmit(onSubmitHandler, onSubmitErrorHandler)}
@@ -129,26 +148,18 @@ export default () => {
               },
             ]}
           >
-            新規追加
+            セッションを追加
           </Text>
         )}
       </Pressable>
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   line: {
-    flex: 1,
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    width: Dimensions.get("window").width,
-  },
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   button: {
     fontSize: 32,

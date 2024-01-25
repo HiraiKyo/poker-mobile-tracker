@@ -54,7 +54,6 @@ export default ({ register, control, errors }: Props) => {
     if (index === 0) return "新しいステークスを追加";
     return stakes[index - 1].stakes_name;
   };
-  const displayValue = genDisplayValue(selectedIndex.row);
 
   return (
     <>
@@ -64,6 +63,7 @@ export default ({ register, control, errors }: Props) => {
             fontSize: 24,
             color: Colors[colorScheme ?? "light"].text,
             textAlign: "right",
+            marginLeft: 10,
           }}
         >
           サイト{"\n"}ステークス
@@ -79,9 +79,9 @@ export default ({ register, control, errors }: Props) => {
           defaultValue={defaultValue}
           render={({ field: { onChange, onBlur, value } }) => (
             <Select
+              style={{ marginRight: 10 }}
               multiSelect={false}
               accessibilityLabel={"ステークス"}
-              value={displayValue}
               onSelect={(index) => {
                 if (Array.isArray(index)) {
                   if (index[0].row === 0) {
