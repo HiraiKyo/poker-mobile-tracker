@@ -18,6 +18,9 @@ import Colors from "../../constants/Colors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { database } from "../../app/_layout";
 import { Stake } from "../../types/stake";
+import { Popover } from "@ui-kitten/components";
+import DateTimeForm from "./DateTimeForm";
+import { ReactElement, useState } from "react";
 
 /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
 type FormParams = Omit<
@@ -31,28 +34,28 @@ export default ({ stake }: { stake: Stake }) => {
   const colorScheme = useColorScheme();
 
   const defaultValues: FormParams = {
-    session_at: "",
+    session_at: new Date(Date.now()),
     win_amount: 0,
     hands_amount: 0,
   };
 
   const {
     control,
-    register,
     watch,
     handleSubmit,
-    setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues,
     resolver: zodResolver(
       sessionSchema.omit({
         id: true,
+        stakes_code: true,
         created_at: true,
         updated_at: true,
         deleted_at: true,
       })
-    ), // Zodにてバリデーションルール定義
+    ), // Zodにてバリデーションルール定義、onChangeTextにて数値変換
   });
 
   /** 成功時処理 */
@@ -62,8 +65,11 @@ export default ({ stake }: { stake: Stake }) => {
       // 1-e. DB登録失敗時はフォームクリアしない
       database.insertSession(
         { ...data, stakes_code: stake.stakes_code },
-        () => resolve,
-        () => reject
+        (sessions) => {
+          clearForm();
+          resolve(sessions);
+        },
+        () => reject()
       );
     });
   };
@@ -73,21 +79,31 @@ export default ({ stake }: { stake: Stake }) => {
     console.error(e);
   };
 
+  // フォームクリア
+  const clearForm = () => {
+    reset();
+  };
+
+  /**
+   * DateTimePickerの都合で、値をこっちから渡す必要がある
+   */
+  const sessionAt = watch("session_at");
+
   return (
     <>
       {/** セッション終了時刻 */}
       <View style={styles.line}>
-        <Session_at register={register} control={control} errors={errors} />
+        <Session_at value={sessionAt} control={control} errors={errors} />
       </View>
 
       {/** 勝ち額 */}
       <View style={styles.line}>
-        <Win_amount register={register} control={control} errors={errors} />
+        <Win_amount control={control} errors={errors} />
       </View>
 
       {/** ハンド数 */}
       <View style={styles.line}>
-        <Hands_amount register={register} control={control} errors={errors} />
+        <Hands_amount control={control} errors={errors} />
       </View>
 
       <Pressable
@@ -132,73 +148,15 @@ const styles = StyleSheet.create({
 });
 
 /**
- * セッション追加用個別フォーム
+ * インプット個別コンポーネント化
  */
+/** Props */
 type Props = {
-  register: UseFormRegister<FormParams>;
-
   control: Control<FormParams, any>;
   errors: FieldErrors<FormParams>;
 };
 
-const Session_at = ({ register, control, errors }: Props) => {
-  const colorScheme = useColorScheme();
-  const key = "session_at";
-
-  return (
-    <>
-      <View style={{ flex: 0.4, alignItems: "flex-end" }}>
-        <Text
-          style={{
-            fontSize: 24,
-            color: Colors[colorScheme ?? "light"].text,
-            textAlign: "right",
-          }}
-        >
-          セッション{"\n"}終了時間
-        </Text>
-      </View>
-      <View style={{ flex: 0.6 }}>
-        <Controller
-          control={control}
-          name={key}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={{
-                borderBottomWidth: 1,
-                borderBottomColor: "#ccc",
-                flex: 1,
-                width: "80%",
-                fontSize: 24,
-                marginLeft: "4%",
-                marginVertical: "2%",
-                color: Colors[colorScheme ?? "light"].text,
-              }}
-              placeholder="10000"
-              onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
-              value={value}
-            />
-          )}
-        />
-        {/** バリデーションエラー表示 */}
-        {errors[key] && errors[key].type === "required" && (
-          <Text style={{ color: "red" }}>日付は必須です。</Text>
-        )}
-        {errors[key] && errors[key].type === "maxLength" && (
-          <Text style={{ color: "red" }}>
-            日付は10桁以内で入力してください。
-          </Text>
-        )}
-      </View>
-    </>
-  );
-};
-
-const Win_amount = ({ register, control, errors }: Props) => {
+const Win_amount = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "win_amount";
 
@@ -236,9 +194,8 @@ const Win_amount = ({ register, control, errors }: Props) => {
               }}
               keyboardType="numeric"
               placeholder="10000"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(value) => onChange(Number(value))}
               value={value.toString()}
             />
           )}
@@ -257,7 +214,59 @@ const Win_amount = ({ register, control, errors }: Props) => {
   );
 };
 
-const Hands_amount = ({ register, control, errors }: Props) => {
+const Session_at = ({ value, control, errors }: Props & { value: Date }) => {
+  const colorScheme = useColorScheme();
+  const key = "session_at";
+
+  const [visible, setVisible] = useState<boolean>(false);
+
+  return (
+    <>
+      <View style={{ flex: 0.4, alignItems: "flex-end" }}>
+        <Text
+          style={{
+            fontSize: 24,
+            color: Colors[colorScheme ?? "light"].text,
+            textAlign: "right",
+          }}
+        >
+          セッション{"\n"}終了時間
+        </Text>
+      </View>
+      <View style={{ flex: 0.6 }}>
+        <Pressable onPressIn={() => setVisible(true)}>
+          {({ pressed }) => (
+            <Text style={popoverStyles.display}>{value.toLocaleString()}</Text>
+          )}
+        </Pressable>
+
+        <DateTimeForm
+          isVisible={visible}
+          control={control}
+          name={key}
+          onClose={() => setVisible(false)}
+        />
+      </View>
+    </>
+  );
+};
+
+const popoverStyles = StyleSheet.create({
+  backdrop: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  display: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    flex: 1,
+    width: "80%",
+    fontSize: 24,
+    marginLeft: "4%",
+    marginVertical: "2%",
+  },
+});
+
+const Hands_amount = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "hands_amount";
 
@@ -294,10 +303,11 @@ const Hands_amount = ({ register, control, errors }: Props) => {
                 color: Colors[colorScheme ?? "light"].text,
               }}
               keyboardType="numeric"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
               placeholder="500"
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(v) => {
+                onChange(Number(v));
+              }}
               value={value.toString()}
             />
           )}

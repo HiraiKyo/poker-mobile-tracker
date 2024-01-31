@@ -10,41 +10,53 @@ import { Text, View } from "../../components/Themed";
 import { LineChart } from "react-native-chart-kit";
 import { useState } from "react";
 import Colors from "../../constants/Colors";
-import { StakeSelector } from "../../components/StakeSelector";
+import {
+  DEFAULT_STAKE,
+  STAKES_CODE_ALL,
+  StakeSelector,
+} from "../../components/StakeSelector";
 import { Stake } from "../../types/stake";
 import { useData } from "../../context/dataContext";
 import { SessionWithStake } from "../../types/session";
 import { TextPath } from "react-native-svg";
-
-// 全セッション情報を取得する意図
-const STAKES_CODE_ALL = -1;
+import { DataEmpty } from "../../components/DataEmpty";
 
 export default () => {
   const colorScheme = useColorScheme();
-  const [selectedStake, setStake] = useState<Stake>(defaultStake);
-
+  const [selectedStake, setStake] = useState<Stake>(DEFAULT_STAKE);
+  const { isDataEmpty } = useData();
+  // データがまだない場合はデータ入力へ誘導
+  if (isDataEmpty) {
+    return <DataEmpty />;
+  }
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <View style={{ alignItems: "center", flex: 1 }}>
-          <Text style={styles.title}>チャート</Text>
-          <View>
-            <StakeSelector setter={setStake} />
-          </View>
-          <ChartArea stake={selectedStake} />
-          <Text style={styles.title}>セッション統計</Text>
-          <StatsArea />
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <Text style={styles.title}>チャート</Text>
+        <View style={styles.scrollItem}>
+          <StakeSelector setter={setStake} />
         </View>
+        <ChartArea stake={selectedStake} />
+        <Text style={styles.title}>セッション統計</Text>
+        <StatsArea />
       </ScrollView>
     </View>
   );
 };
 
+const sideMargin = 40;
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
+  },
+  scrollView: {
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  scrollItem: {
+    width: Dimensions.get("window").width - 2 * sideMargin,
+    alignContent: "center",
+    gap: 4,
   },
   title: {
     fontSize: 20,
@@ -161,7 +173,7 @@ const StatsArea = () => {
     return [stake.stakes_name, hands, net, bb, winrate];
   };
   const dataset = [
-    generateRow(defaultStake),
+    generateRow(DEFAULT_STAKE),
     ...stakes.map((stake) => generateRow(stake)),
   ];
 
@@ -191,17 +203,6 @@ const StatsArea = () => {
       ))}
     </View>
   );
-};
-
-const defaultStake: Stake = {
-  created_at: "",
-  updated_at: "",
-  deleted_at: null,
-  stakes_code: STAKES_CODE_ALL,
-  stakes_name: "総計",
-  sb: 0,
-  bb: 0,
-  provider: "",
 };
 
 const chartConfig = {

@@ -80,6 +80,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="setting"
+        options={{
+          title: "設定",
+          headerTitleAlign: "center",
+          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

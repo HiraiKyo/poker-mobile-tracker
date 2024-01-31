@@ -1,20 +1,51 @@
-import { Icon, IconElement, Menu, MenuItem } from "@ui-kitten/components";
-import { StyleSheet, ScrollView } from "react-native";
+import {
+  Icon,
+  IconElement,
+  Menu,
+  MenuItem,
+  styled,
+} from "@ui-kitten/components";
+import {
+  StyleSheet,
+  ScrollView,
+  Button,
+  Pressable,
+  GestureResponderEvent,
+  useColorScheme,
+  Alert,
+} from "react-native";
 
 import { Text, View } from "../../components/Themed";
+import { database } from "../_layout";
+import { useData } from "../../context/dataContext";
+import { Setting } from "../../components/setting/setting-section";
 
 export default () => {
+  const colorScheme = useColorScheme();
+  const { reload, reloadStakes } = useData();
+
+  const onDeleteDataHandler = async () => {
+    // TODO: 確認ダイアログ表示
+    database.resetAll(() => {
+      reload();
+      reloadStakes();
+    });
+    Alert.alert("データが初期化されました。 ");
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Menu>
-          <MenuItem title={"データベース消去"}>
-            <View>
-              <Text></Text>
-            </View>
-          </MenuItem>
-        </Menu>
-      </ScrollView>
+      <Setting
+        title={"データ初期化"}
+        line={{
+          type: "button",
+          action: onDeleteDataHandler,
+          buttonLabel: "消去",
+          status: "danger",
+          description:
+            "データを初期化します。この操作は元に戻せないため、慎重に行ってください。",
+        }}
+      />
     </View>
   );
 };
@@ -22,12 +53,11 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignContent: "center",
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
+  menu: {
+    flex: 1,
+    margin: 8,
   },
   separator: {
     marginVertical: 30,

@@ -104,12 +104,13 @@ function RootLayoutNav() {
             presentation: "modal",
           }}
         />
+        {/** 設定関連モーダル群 */}
         <Stack.Screen
-          name="setting"
+          name="setting/database"
           options={{
             headerTitleAlign: "center",
-            headerBackTitle: "設定",
-            title: "設定",
+            headerBackTitle: "データ管理",
+            title: "データ管理",
             presentation: "modal",
           }}
         />

@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const stakeSchema = z.object({
-  created_at: z.string(),
-  updated_at: z.string(),
-  deleted_at: z.union([z.string(), z.null()]),
-  stakes_code: z.number(),
+  created_at: z.date(),
+  updated_at: z.date(),
+  deleted_at: z.union([z.date(), z.null()]),
+  stakes_code: z.number().int(),
   stakes_name: z.string(),
-  sb: z.number(),
-  bb: z.number(),
+  sb: z.number().positive(),
+  bb: z.number().positive(),
   provider: z.string(),
 });
 

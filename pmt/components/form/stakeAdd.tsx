@@ -5,22 +5,16 @@ import {
   UseFormRegister,
   useForm,
 } from "react-hook-form";
-import {
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  useColorScheme,
-} from "react-native";
+import { Pressable, StyleSheet, TextInput, useColorScheme } from "react-native";
 import { View, Text } from "../Themed";
-import { Session, SessionWithStake, sessionSchema } from "../../types/session";
+import { SessionWithStake, sessionWithStakeSchema } from "../../types/session";
 import Colors from "../../constants/Colors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { database } from "../../app/_layout";
-import { Stake, stakeSchema } from "../../types/stake";
-import { IndexPath, Select } from "@ui-kitten/components";
-import { useState } from "react";
-import { useData } from "../../context/dataContext";
+import { Stake } from "../../types/stake";
+import { ReactElement, useEffect, useState } from "react";
+import { Button, Modal, Popover } from "@ui-kitten/components";
+import DateTimeForm from "./DateTimeForm";
 
 /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
 type FormParams = Omit<
@@ -31,11 +25,7 @@ type FormParams = Omit<
 /**
  * 新規ステークスとともにセッション記録
  */
-export default ({
-  setStakesCode,
-}: {
-  setStakesCode: (stakes_code: number) => void;
-}) => {
+export default () => {
   const colorScheme = useColorScheme();
 
   const defaultValues: FormParams = {
@@ -43,20 +33,22 @@ export default ({
     sb: 1,
     bb: 2,
     provider: "デフォルトサイト",
-    session_at: Date.now().toLocaleString(),
+    session_at: new Date(Date.now()),
     hands_amount: 0,
     win_amount: 0,
   };
 
   const {
     control,
-    register,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<FormParams>({
     defaultValues,
     resolver: zodResolver(
-      stakeSchema.omit({
+      sessionWithStakeSchema.omit({
+        id: true,
         stakes_code: true,
         created_at: true,
         updated_at: true,
@@ -68,21 +60,25 @@ export default ({
   /** 成功時処理 */
   const onSubmitHandler = async (data: FormParams) => {
     console.log("Submit button has been pressed.");
-    await new Promise((resolve, reject) => {
-      // 1. TODO: DB登録、完了と同時にフォームクリアと送信ボタンをenabled
-      // 1-e. TODO: DB登録失敗時はフォームクリアしない
+    // TODO: ユーザビリティの都合上、ここにsleepを入れた方がいいかもしれない
 
+    await new Promise((resolve, reject) => {
       // ステークスを追加、成功したらセッション追加処理に移行
       database.insertStake(
         data,
         (insertedData: Stake) => {
           database.insertSession(
             { ...data, stakes_code: insertedData.stakes_code },
-            () => resolve,
-            () => reject
+            (sessions) => {
+              // 入力成功したらフォームクリア、失敗ならクリアせず
+              clearForm();
+              // TODO: ユーザビリティ向上、フォーム入力成功ポップアップ
+              resolve(sessions);
+            },
+            () => reject()
           );
         },
-        () => reject
+        () => reject()
       );
     });
   };
@@ -93,42 +89,49 @@ export default ({
   };
 
   // フォームクリア
-  const clearForm = () => {};
+  const clearForm = () => {
+    reset();
+  };
+
+  /**
+   * DateTimePickerの都合で、値をこっちから渡す必要がある
+   */
+  const sessionAt = watch("session_at");
 
   return (
     <View style={styles.container}>
       {/** セッション終了時刻 */}
       <View style={styles.line}>
-        <Session_at register={register} control={control} errors={errors} />
+        <Session_at value={sessionAt} control={control} errors={errors} />
       </View>
 
       {/** 勝ち額 */}
       <View style={styles.line}>
-        <Win_amount register={register} control={control} errors={errors} />
+        <Win_amount control={control} errors={errors} />
       </View>
 
       {/** ハンド数 */}
       <View style={styles.line}>
-        <Hands_amount register={register} control={control} errors={errors} />
+        <Hands_amount control={control} errors={errors} />
       </View>
       {/** ステークス */}
       <View style={styles.line}>
-        <Stakes_name register={register} control={control} errors={errors} />
+        <Stakes_name control={control} errors={errors} />
       </View>
 
       {/** SB */}
       <View style={styles.line}>
-        <Sb register={register} control={control} errors={errors} />
+        <Sb control={control} errors={errors} />
       </View>
 
       {/** BB */}
       <View style={styles.line}>
-        <Bb register={register} control={control} errors={errors} />
+        <Bb control={control} errors={errors} />
       </View>
 
       {/** サイト */}
       <View style={styles.line}>
-        <Provider register={register} control={control} errors={errors} />
+        <Provider control={control} errors={errors} />
       </View>
 
       <Pressable
@@ -184,12 +187,11 @@ const styles = StyleSheet.create({
  */
 /** Props */
 type Props = {
-  register: UseFormRegister<FormParams>;
   control: Control<FormParams, any>;
   errors: FieldErrors<FormParams>;
 };
 
-const Stakes_name = ({ register, control, errors }: Props) => {
+const Stakes_name = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "stakes_name";
 
@@ -246,7 +248,7 @@ const Stakes_name = ({ register, control, errors }: Props) => {
   );
 };
 
-const Bb = ({ register, control, errors }: Props) => {
+const Bb = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "bb";
 
@@ -284,9 +286,8 @@ const Bb = ({ register, control, errors }: Props) => {
               }}
               placeholder="10000"
               keyboardType="numeric"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(value) => onChange(Number(value))}
               value={value.toString()}
             />
           )}
@@ -305,7 +306,7 @@ const Bb = ({ register, control, errors }: Props) => {
   );
 };
 
-const Sb = ({ register, control, errors }: Props) => {
+const Sb = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "sb";
 
@@ -343,9 +344,8 @@ const Sb = ({ register, control, errors }: Props) => {
               }}
               placeholder="10000"
               keyboardType="numeric"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(value) => onChange(Number(value))}
               value={value.toString()}
             />
           )}
@@ -364,7 +364,7 @@ const Sb = ({ register, control, errors }: Props) => {
   );
 };
 
-const Provider = ({ register, control, errors }: Props) => {
+const Provider = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "provider";
 
@@ -421,7 +421,7 @@ const Provider = ({ register, control, errors }: Props) => {
   );
 };
 
-const Win_amount = ({ register, control, errors }: Props) => {
+const Win_amount = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "win_amount";
 
@@ -459,9 +459,8 @@ const Win_amount = ({ register, control, errors }: Props) => {
               }}
               keyboardType="numeric"
               placeholder="10000"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(value) => onChange(Number(value))}
               value={value.toString()}
             />
           )}
@@ -480,9 +479,11 @@ const Win_amount = ({ register, control, errors }: Props) => {
   );
 };
 
-const Session_at = ({ register, control, errors }: Props) => {
+const Session_at = ({ value, control, errors }: Props & { value: Date }) => {
   const colorScheme = useColorScheme();
   const key = "session_at";
+
+  const [visible, setVisible] = useState<boolean>(false);
 
   return (
     <>
@@ -498,46 +499,39 @@ const Session_at = ({ register, control, errors }: Props) => {
         </Text>
       </View>
       <View style={{ flex: 0.6 }}>
-        <Controller
+        <Pressable onPressIn={() => setVisible(true)}>
+          {({ pressed }) => (
+            <Text style={popoverStyles.display}>{value.toLocaleString()}</Text>
+          )}
+        </Pressable>
+
+        <DateTimeForm
+          isVisible={visible}
           control={control}
           name={key}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={{
-                borderBottomWidth: 1,
-                borderBottomColor: "#ccc",
-                flex: 1,
-                width: "80%",
-                fontSize: 24,
-                marginLeft: "4%",
-                marginVertical: "2%",
-                color: Colors[colorScheme ?? "light"].text,
-              }}
-              placeholder="10000"
-              onBlur={onBlur}
-              onChangeText={(value) => onChange(value)}
-              value={value}
-            />
-          )}
+          onClose={() => setVisible(false)}
         />
-        {/** バリデーションエラー表示 */}
-        {errors[key] && errors[key].type === "required" && (
-          <Text style={{ color: "red" }}>日付は必須です。</Text>
-        )}
-        {errors[key] && errors[key].type === "maxLength" && (
-          <Text style={{ color: "red" }}>
-            日付は10桁以内で入力してください。
-          </Text>
-        )}
       </View>
     </>
   );
 };
 
-const Hands_amount = ({ register, control, errors }: Props) => {
+const popoverStyles = StyleSheet.create({
+  backdrop: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  display: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    flex: 1,
+    width: "80%",
+    fontSize: 24,
+    marginLeft: "4%",
+    marginVertical: "2%",
+  },
+});
+
+const Hands_amount = ({ control, errors }: Props) => {
   const colorScheme = useColorScheme();
   const key = "hands_amount";
 
@@ -574,10 +568,11 @@ const Hands_amount = ({ register, control, errors }: Props) => {
                 color: Colors[colorScheme ?? "light"].text,
               }}
               keyboardType="numeric"
-              {...register(key, { valueAsNumber: true })} // バリデーション前数値変換
               onBlur={onBlur}
               placeholder="500"
-              onChangeText={(value) => onChange(value)}
+              onChangeText={(v) => {
+                onChange(Number(v));
+              }}
               value={value.toString()}
             />
           )}

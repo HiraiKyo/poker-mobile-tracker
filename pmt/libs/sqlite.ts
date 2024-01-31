@@ -19,6 +19,10 @@ import Config from "../constants/Config";
 import { Session, SessionWithStake } from "../types/session";
 import { Stake } from "../types/stake";
 
+/**
+ * Repositoryクラス
+ * TODO: DBの変更通知を出して、プレゼンテーション層でデータ再取得させる
+ */
 export class Database {
   private static instance: Database;
   private db: SQLiteDatabase;
@@ -69,7 +73,7 @@ export class Database {
    * DB初期化
    * @returns
    */
-  private initialize = () => {
+  private initialize = (onLoaded: () => void = () => {}) => {
     this.db.transaction((tx) => {
       tx.executeSql(
         `
@@ -108,7 +112,9 @@ export class Database {
         );
           `,
         [],
-        (tx, resultSet) => {},
+        (tx, resultSet) => {
+          onLoaded();
+        },
         (tx, e) => {
           return false;
         }
@@ -122,7 +128,7 @@ export class Database {
    */
   public insertSession = (
     session: Omit<Session, "id" | "created_at" | "updated_at" | "deleted_at">,
-    onSuccess: () => void,
+    onSuccess: (sessionWithStakes: SessionWithStake[]) => void,
     onFailed: () => void
   ) => {
     this.db.transaction((tx) => {
@@ -135,14 +141,14 @@ export class Database {
           ?, ?, ?, ?
         );`,
         [
-          session.session_at,
+          session.session_at.toISOString(),
           session.hands_amount,
           session.stakes_code,
           session.win_amount,
         ],
         (tx, resultSet) => {
           console.log(resultSet);
-          onSuccess();
+          onSuccess(this.convertSessionList(resultSet.rows._array));
         },
         (tx, e) => {
           onFailed();
@@ -172,7 +178,7 @@ export class Database {
         WHERE id = ?;
         `,
         [
-          session.session_at,
+          session.session_at.toISOString(),
           session.hands_amount,
           session.stakes_code,
           session.win_amount,
@@ -244,33 +250,6 @@ export class Database {
     });
   };
 
-  private convertSessionList = (dataList: any[]) => {
-    let output: SessionWithStake[] = [];
-    for (let dataObject of dataList) {
-      output.push(this.convertSession(dataObject));
-    }
-    return output;
-  };
-
-  private convertSession = (dataObject: any) => {
-    // FIXME: 書き方不明、型安全を優先してベタ書き
-    const session: SessionWithStake = {
-      id: dataObject["id"],
-      created_at: dataObject["created_at"],
-      updated_at: dataObject["updated_at"],
-      deleted_at: dataObject["deleted_at"],
-      session_at: dataObject["session_at"],
-      hands_amount: dataObject["hands_amount"],
-      stakes_code: dataObject["stakes_code"],
-      win_amount: dataObject["win_amount"],
-      stakes_name: dataObject["stakes_name"],
-      sb: dataObject["sb"],
-      bb: dataObject["bb"],
-      provider: dataObject["provider"],
-    };
-    return session;
-  };
-
   /** ステークス管理 */
 
   /**
@@ -307,7 +286,7 @@ export class Database {
           });
         },
         (tx, e) => {
-          onFailed(e);
+          onFailed();
           console.error(e);
           return false;
           // return appError.transactionError(e);
@@ -420,7 +399,49 @@ export class Database {
     });
   };
 
-  private convertStakeList = (dataList: any[]) => {
+  /**
+   * データベースリセット
+   */
+  public resetAll = (onLoaded: () => void = () => {}) => {
+    this.db.transaction((tx) => {
+      tx.executeSql(`DROP TABLE IF EXISTS sessions;`);
+      tx.executeSql(`DROP TABLE IF EXISTS stakes;`);
+    });
+    this.initialize(onLoaded);
+  };
+
+  /**
+   * DAOはいったんここに書く
+   */
+
+  private convertSessionList = (dataList: any[]): SessionWithStake[] => {
+    let output: SessionWithStake[] = [];
+    for (let dataObject of dataList) {
+      output.push(this.convertSession(dataObject));
+    }
+    return output;
+  };
+
+  private convertSession = (dataObject: any): SessionWithStake => {
+    // FIXME: 書き方不明、型安全を優先してベタ書き
+    const session: SessionWithStake = {
+      id: dataObject["id"],
+      created_at: new Date(dataObject["created_at"]),
+      updated_at: new Date(dataObject["updated_at"]),
+      deleted_at: new Date(dataObject["deleted_at"]),
+      session_at: new Date(dataObject["session_at"]),
+      hands_amount: dataObject["hands_amount"],
+      stakes_code: dataObject["stakes_code"],
+      win_amount: dataObject["win_amount"],
+      stakes_name: dataObject["stakes_name"],
+      sb: dataObject["sb"],
+      bb: dataObject["bb"],
+      provider: dataObject["provider"],
+    };
+    return session;
+  };
+
+  private convertStakeList = (dataList: any[]): Stake[] => {
     let output: Stake[] = [];
     for (let dataObject of dataList) {
       output.push(this.convertStake(dataObject));
@@ -428,18 +449,18 @@ export class Database {
     return output;
   };
 
-  private convertStake = (dataObject: any) => {
+  private convertStake = (dataObject: any): Stake => {
     // FIXME: 書き方不明、型安全を優先してベタ書き
-    const session: Stake = {
-      created_at: dataObject["created_at"],
-      updated_at: dataObject["updated_at"],
-      deleted_at: dataObject["deleted_at"],
+    const stake: Stake = {
+      created_at: new Date(dataObject["created_at"]), // ISOStringで来る事を期待
+      updated_at: new Date(dataObject["updated_at"]),
+      deleted_at: new Date(dataObject["deleted_at"]),
       stakes_code: dataObject["stakes_code"],
       stakes_name: dataObject["stakes_name"],
       sb: dataObject["sb"],
       bb: dataObject["bb"],
       provider: dataObject["provider"],
     };
-    return session;
+    return stake;
   };
 }

@@ -14,11 +14,15 @@ import { IndexPath, Select, SelectItem } from "@ui-kitten/components";
 import { useData } from "../../context/dataContext";
 import { useState } from "react";
 import { Stake } from "../../types/stake";
+import { stakeCombinedName } from "../../libs/label";
 
 type Props = {
   selectStake: (stake: Stake | undefined) => void;
 };
 
+/**
+ * ステークス選択セレクタ + 新規ステークスの作成選択
+ */
 export default ({ selectStake }: Props) => {
   const colorScheme = useColorScheme();
   const { stakes, reloadStakes } = useData();
@@ -32,29 +36,35 @@ export default ({ selectStake }: Props) => {
   const defaultIndex = 0; // TODO: キャッシュされた最後の値をデフォルトにする FIXME: 配列順序は毎回同じ？配列内検索してインデックス番号を取得する必要あり
   const defaultValue = -1; // TODO: キャッシュされた最後の値をデフォルトにする
   const [selectedIndex, setSelectedIndex] = useState<IndexPath>(
-    new IndexPath(defaultIndex)
+    new IndexPath(0, defaultIndex) // SelectItemのエレメントを入れ子構造にすると、こうする必要がある
   );
 
   /**
    * セレクタ選択時処理
    */
-  const selectIndex = (indexPath: IndexPath | IndexPath[]) => {
-    const i = Array.isArray(indexPath) ? indexPath[0].row : indexPath.row;
-    if (i === 0) {
-      selectStake(undefined);
+  const setterWrapper = (i: IndexPath | IndexPath[]) => {
+    const indexPath = Array.isArray(i) ? i[0] : i;
+
+    if (indexPath) {
+      setSelectedIndex(indexPath);
+      if (indexPath.row === 0) {
+        selectStake(undefined);
+      } else {
+        selectStake(stakes[indexPath.row - 1]);
+      }
     }
-    selectStake(stakes[i - 1]);
   };
 
   /** セレクタの表示名をここで編集する、sb/bbとか */
   const genDisplayValue = (index: number) => {
     if (index === 0) return "新しいステークスを追加";
-    return stakes[index - 1].stakes_name;
+    return stakeCombinedName({ stake: stakes[index - 1] });
   };
+  const displayValue = genDisplayValue(selectedIndex.row);
 
   return (
     <>
-      <View style={{ flex: 0.4, alignItems: "flex-end" }}>
+      <View style={{ flex: 1, alignItems: "center" }}>
         <Text
           style={{
             fontSize: 24,
@@ -62,20 +72,21 @@ export default ({ selectStake }: Props) => {
             textAlign: "right",
           }}
         >
-          サイト{"\n"}ステークス
+          ステークス
         </Text>
       </View>
-      <View style={{ flex: 0.6 }}>
+      <View style={{ flex: 1 }}>
         <Select
           multiSelect={false}
           accessibilityLabel={"ステークス"}
+          value={displayValue}
+          selectedIndex={selectedIndex}
           onSelect={(indexPath) => {
-            selectIndex(indexPath);
+            setterWrapper(indexPath);
           }}
         >
           <>
             <SelectItem key={`select-option-new`} title={genDisplayValue(0)} />
-
             {stakes.map((stake, i) => (
               <SelectItem
                 key={`select-option-${stake.stakes_code}`}

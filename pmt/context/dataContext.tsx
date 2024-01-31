@@ -14,45 +14,65 @@ type DataContextValue = {
   reload: () => Promise<void>;
   stakes: Stake[];
   reloadStakes: () => Promise<void>;
+  isDataEmpty: boolean;
 };
 
 const defaultValue = {
   data: [],
-  reload: async () => { throw new Error("Context Provider is not set.") },
+  reload: async () => {
+    throw new Error("Context Provider is not set.");
+  },
   stakes: [],
-  reloadStakes: async () => { throw new Error("Context Provider is not set.")},
+  reloadStakes: async () => {
+    throw new Error("Context Provider is not set.");
+  },
+  isDataEmpty: true,
 };
 const dataContext = createContext<DataContextValue>(defaultValue);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<SessionWithStake[]>(defaultValue.data);
 
-  const reload = () => new Promise<void>((resolve, reject) => {
-    console.log("reloading session[]...");
-    database.loadSession((_) => {
-      setData(_);
-      resolve();
+  const reload = () =>
+    new Promise<void>((resolve, reject) => {
+      console.log("reloading session[]...");
+      database.loadSession((_) => {
+        setData(_);
+        resolve();
+      });
     });
-  })
 
   // ステークス一覧
   const [stakes, setStakes] = useState<Stake[]>(defaultValue.stakes);
 
-  const reloadStakes = () => new Promise<void>((resolve, reject) => {
-    console.log("reloading stake[]...");
-    database.loadStake((_) => {
-      setStakes(_);
-      resolve();
+  const reloadStakes = () =>
+    new Promise<void>((resolve, reject) => {
+      console.log("reloading stake[]...");
+      database.loadStake((_) => {
+        setStakes(_);
+        resolve();
+      });
     });
-  })
 
   useEffect(() => {
     reload();
     reloadStakes();
   }, []);
 
+  // データがまだ存在しない場合に、フラグを建てて最初のデータを入れるよう誘導する
+  const [isDataEmpty, setEmpty] = useState<boolean>(defaultValue.isDataEmpty);
+  useEffect(() => {
+    if (data.length === 0 || stakes.length === 0) {
+      setEmpty(true);
+    } else {
+      setEmpty(false);
+    }
+  }, [data, stakes]);
+
   return (
-    <dataContext.Provider value={{ data, reload, stakes, reloadStakes }}>
+    <dataContext.Provider
+      value={{ data, reload, stakes, reloadStakes, isDataEmpty }}
+    >
       {children}
     </dataContext.Provider>
   );

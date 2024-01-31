@@ -12,41 +12,63 @@ import { Text, View } from "../../components/Themed";
 import { FontAwesome } from "@expo/vector-icons";
 import Colors from "../../constants/Colors";
 import { Link } from "expo-router";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useData } from "../../context/dataContext";
 import { SessionWithStake } from "../../types/session";
 import { database } from "../_layout";
+import { Stake } from "../../types/stake";
+import {
+  DEFAULT_STAKE,
+  STAKES_CODE_ALL,
+  StakeSelector,
+} from "../../components/StakeSelector";
+import { DataEmpty } from "../../components/DataEmpty";
 
 export default () => {
   const colorScheme = useColorScheme();
-  const { data, reload } = useData(); // TODO: もっと見る… ボタンは一時的にreloadボタンになってる
+  const { data, reload, isDataEmpty } = useData(); // TODO: もっと見る… ボタンは一時的にreloadボタンになってる
+
+  const [sessions, setSessions] = useState<SessionWithStake[]>([]);
+  const [selectedStake, setStake] = useState<Stake>(DEFAULT_STAKE);
+
+  // セッションをフィルターする
+  const filterSessions = (sessions: SessionWithStake[]): SessionWithStake[] => {
+    if (selectedStake.stakes_code === STAKES_CODE_ALL) {
+      return sessions;
+    }
+    return sessions.filter(
+      (session) => session.stakes_code === selectedStake.stakes_code
+    );
+  };
 
   useEffect(() => {
-    console.log(data);
-  }, [data]);
+    setSessions(filterSessions(data));
+  }, [data, selectedStake]);
+
+  // データがまだ無い場合はフォームへ直接移動
+  if (isDataEmpty) {
+    return <DataEmpty />;
+  }
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <View style={{
-          flexGrow: 1,
-          marginTop: 4,
-        }}>
-          <Text style={styles.title}>セッション一覧</Text>
+        <View style={styles.scrollItem}>
+          <StakeSelector setter={setStake} />
         </View>
         <View style={styles.scrollItem}>
-            <Text
-              style={[
-                styles.sessionDateSeparator,
-                { color: Colors[colorScheme ?? "light"].text, textAlign: "center" },
-              ]}
-            >
-              今日
-            </Text>
-          {data.map((sessionWithStake, index) => (
-            <SessionSummary 
-              key={index}
-              sessionWithStake={sessionWithStake}
-            />
+          <Text
+            style={[
+              styles.sessionDateSeparator,
+              {
+                color: Colors[colorScheme ?? "light"].text,
+                textAlign: "center",
+              },
+            ]}
+          >
+            今日
+          </Text>
+          {sessions.map((sessionWithStake, index) => (
+            <SessionSummary key={index} sessionWithStake={sessionWithStake} />
           ))}
           <Pressable onPress={reload}>
             {({ pressed }) => (
@@ -97,7 +119,7 @@ export default () => {
 const sideMargin = 40;
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   scrollView: {
     alignItems: "center",
@@ -106,7 +128,7 @@ const styles = StyleSheet.create({
   scrollItem: {
     width: Dimensions.get("window").width - 2 * sideMargin,
     alignContent: "center",
-    gap: 4
+    gap: 4,
   },
   title: {
     fontSize: 20,
@@ -134,8 +156,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-
-
 
 /**
  * スタイル記述エリア end
@@ -211,9 +231,7 @@ const SessionSummary = ({
             backgroundColor: Colors[colorScheme ?? "light"].mainBg,
           }}
         >
-          {sessionWithStake.session_at === ""
-            ? sessionWithStake.created_at
-            : sessionWithStake.session_at}
+          {sessionWithStake.session_at.toLocaleString()}
         </Text>
         <View
           style={{

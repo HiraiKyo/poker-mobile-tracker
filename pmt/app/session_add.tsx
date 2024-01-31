@@ -11,10 +11,7 @@ import {
 } from "react-native";
 
 import { Text, View } from "../components/Themed";
-import { Controller, useForm } from "react-hook-form";
 import Colors from "../constants/Colors";
-import Session_at from "../components/form/session/session_at";
-import { Session } from "../types/session";
 import SessionAdd from "../components/form/sessionAdd";
 import StakeAdd from "../components/form/stakeAdd";
 import Stakes_code from "../components/form/stakes_code";
@@ -36,7 +33,9 @@ export default () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <Stakes_code selectStake={selectStake} />
+        <View style={styles.scrollItem}>
+          <Stakes_code selectStake={selectStake} />
+        </View>
         {stake ? <SessionAdd stake={stake} /> : <StakeAdd />}
         {/* Use a light status bar on iOS to account for the black space above the modal */}
         <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
@@ -45,6 +44,7 @@ export default () => {
   );
 };
 
+const sideMargin = 40;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -52,6 +52,11 @@ const styles = StyleSheet.create({
   scrollView: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  scrollItem: {
+    width: Dimensions.get("window").width - 2 * sideMargin,
+    alignContent: "center",
+    gap: 4,
   },
   title: {
     fontSize: 20,
