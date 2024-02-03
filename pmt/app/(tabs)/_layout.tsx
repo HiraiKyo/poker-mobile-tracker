@@ -1,8 +1,10 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
-import { Pressable, useColorScheme } from "react-native";
+import { Pressable, StyleProp, TextStyle, useColorScheme } from "react-native";
 
 import Colors from "../../constants/Colors";
+import App from "../../constants/Description";
+import Description from "../../constants/Description";
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -15,7 +17,24 @@ function TabBarIcon(props: {
 }
 
 /**
+ * LOGO ICON
+ * TODO: ロゴアイコン作成
+ */
+const LogoIcon = (props: { style: StyleProp<TextStyle> }) => {
+  const colorScheme = useColorScheme();
+
+  return (
+    <FontAwesome
+      size={25}
+      {...props}
+      color={Colors[colorScheme ?? "light"].text}
+      name="book"
+    />
+  );
+};
+/**
  * ヘッダーとボトムバーナビゲーション
+ * TODO: ヘッダーのアイコンとテキストのjustifyContentをcenterにしたい
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -30,22 +49,10 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "ホーム",
-          headerTitleAlign: "center",
+          headerTitle: Description.appName,
+          headerTitleAlign: "left",
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerRight: () => (
-            <Link href="/setting" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="cog"
-                    size={25}
-                    color={Colors[colorScheme ?? "light"].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          headerLeft: () => <LogoIcon style={{ marginLeft: 15 }} />,
         }}
       />
       <Tabs.Screen

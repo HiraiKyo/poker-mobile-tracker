@@ -69,7 +69,7 @@ export const StakeSelector = ({
 const styles = StyleSheet.create({
   select: {
     flex: 1,
-    margin: 2,
+    margin: 10,
   },
   selectItem: {
     flex: 1,

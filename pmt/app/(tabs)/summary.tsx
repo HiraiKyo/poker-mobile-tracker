@@ -169,7 +169,7 @@ const StatsArea = () => {
     const hands = accumHands(sessions);
     const net = accumNet(sessions);
     const bb = accumBB(sessions);
-    const winrate = (bb / hands) * 100;
+    const winrate = ((bb / hands) * 100).toFixed(1); // 小数点第１位で四捨五入
     return [stake.stakes_name, hands, net, bb, winrate];
   };
   const dataset = [
