@@ -5,7 +5,7 @@ import {
   UseFormRegister,
   useForm,
 } from "react-hook-form";
-import { Pressable, StyleSheet, TextInput, useColorScheme } from "react-native";
+import { Alert, Pressable, StyleSheet, TextInput, useColorScheme } from "react-native";
 import { View, Text } from "../Themed";
 import { SessionWithStake, sessionWithStakeSchema } from "../../types/session";
 import Colors from "../../constants/Colors";
@@ -15,6 +15,7 @@ import { Stake } from "../../types/stake";
 import { ReactElement, useEffect, useState } from "react";
 import { Button, Modal, Popover } from "@ui-kitten/components";
 import DateTimeForm from "./DateTimeForm";
+import { useData } from "../../context/dataContext";
 
 /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
 type FormParams = Omit<
@@ -27,6 +28,7 @@ type FormParams = Omit<
  */
 export default () => {
   const colorScheme = useColorScheme();
+  const { reload, reloadStakes } = useData();
 
   const defaultValues: FormParams = {
     stakes_name: "デフォルト",
@@ -72,15 +74,22 @@ export default () => {
             (sessions) => {
               // 入力成功したらフォームクリア、失敗ならクリアせず
               clearForm();
-              // TODO: ユーザビリティ向上、フォーム入力成功ポップアップ
               resolve(sessions);
             },
             () => reject()
+
           );
         },
         () => reject()
       );
-    });
+    }).then(() => {
+      Alert.alert("セッションを記録しました。");
+      reload();
+      reloadStakes();
+    }
+    ).catch(
+      () => Alert.alert("セッションの記録に失敗しました。")
+    );
   };
 
   /** 失敗時処理 */
@@ -460,7 +469,7 @@ const Win_amount = ({ control, errors }: Props) => {
               keyboardType="numeric"
               placeholder="10000"
               onBlur={onBlur}
-              onChangeText={(value) => onChange(Number(value))}
+              onChangeText={(value) => onChange(toNumberWithMinus(value))}
               value={value.toString()}
             />
           )}

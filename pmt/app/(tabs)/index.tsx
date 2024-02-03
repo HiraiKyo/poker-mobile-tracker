@@ -10,7 +10,7 @@ import {
 import { Text, View } from "../../components/Themed";
 import { FontAwesome } from "@expo/vector-icons";
 import Colors from "../../constants/Colors";
-import { Card, Layout } from "@ui-kitten/components";
+import { Card } from "@ui-kitten/components";
 import { router } from "expo-router";
 
 // TODO: トップページロゴ作成
@@ -33,7 +33,7 @@ export default () => {
         <View style={styles.cardLayout}>
           <Pressable
             style={styles.cardWrapper}
-            onPress={() => router.push("/summary")}
+            onPressIn={() => router.push("/summary")}
           >
             {({ pressed }) => (
               <Card
@@ -47,7 +47,7 @@ export default () => {
           </Pressable>
           <Pressable
             style={styles.cardWrapper}
-            onPress={() => router.push("/summary")}
+            onPressIn={() => router.push("/summary")}
           >
             {({ pressed }) => (
               <Card
@@ -61,7 +61,7 @@ export default () => {
           </Pressable>
           <Pressable
             style={styles.cardWrapper}
-            onPress={() => router.push("/sessions")}
+            onPressIn={() => router.push("/sessions")}
           >
             {({ pressed }) => (
               <Card

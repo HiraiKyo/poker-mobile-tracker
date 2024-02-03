@@ -6,6 +6,7 @@ import {
   useForm,
 } from "react-hook-form";
 import {
+  Alert,
   Dimensions,
   Pressable,
   StyleSheet,
@@ -21,6 +22,7 @@ import { Stake } from "../../types/stake";
 import { Popover } from "@ui-kitten/components";
 import DateTimeForm from "./DateTimeForm";
 import { ReactElement, useState } from "react";
+import { useData } from "../../context/dataContext";
 
 /** フォーム型宣言 ここで宣言したパラメータで入力エリアを作成する */
 type FormParams = Omit<
@@ -32,6 +34,7 @@ type FormParams = Omit<
  */
 export default ({ stake }: { stake: Stake }) => {
   const colorScheme = useColorScheme();
+  const { reload, reloadStakes } = useData();
 
   const defaultValues: FormParams = {
     session_at: new Date(Date.now()),
@@ -71,7 +74,14 @@ export default ({ stake }: { stake: Stake }) => {
         },
         () => reject()
       );
-    });
+    }).then(() => {
+      Alert.alert("セッションを記録しました。");
+      reload();
+      reloadStakes();
+    }
+    ).catch(
+      () => Alert.alert("セッションの記録に失敗しました。")
+    );
   };
 
   /** 失敗時処理 */
@@ -195,7 +205,7 @@ const Win_amount = ({ control, errors }: Props) => {
               keyboardType="numeric"
               placeholder="10000"
               onBlur={onBlur}
-              onChangeText={(value) => onChange(Number(value))}
+              onChangeText={(value) => onChange(toNumberWithMinus(value))}
               value={value.toString()}
             />
           )}
